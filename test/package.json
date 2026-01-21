@@ -1,0 +1,16 @@
+{
+  "name": "ecco-test",
+  "version": "1.0.0",
+  "description": "Testing infrastructure for Ecco - The Flipper",
+  "type": "module",
+  "scripts": {
+    "test": "node --test",
+    "test:protocol": "node --test protocol.test.js",
+    "test:integration": "node --test integration.test.js",
+    "mock-flipper": "node mock-flipper.js",
+    "test:watch": "node --test --watch"
+  },
+  "devDependencies": {
+    "ws": "^8.16.0"
+  }
+}
