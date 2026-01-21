@@ -1,0 +1,22 @@
+[package]
+name = "ecco-esp32"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+esp-idf-sys = { version = "0.34", features = ["binstart"] }
+esp-idf-hal = "0.43"
+esp-idf-svc = { version = "0.48", features = ["alloc"] }
+embedded-svc = "0.27"
+log = "0.4"
+anyhow = "1.0"
+
+[build-dependencies]
+embuild = "0.31"
+
+[profile.release]
+opt-level = "s"
+lto = true
+
+[profile.dev]
+opt-level = "z"

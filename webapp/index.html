@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ecco</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="app">
+        <header>
+            <h1>Ecco</h1>
+            <div id="status" class="disconnected">Disconnected</div>
+        </header>
+
+        <div id="setup" class="panel">
+            <input type="password" id="api-key" placeholder="Anthropic API Key">
+            <button id="connect-btn">Connect</button>
+        </div>
+
+        <div id="chat" class="hidden">
+            <div id="messages"></div>
+            <form id="input-form">
+                <input type="text" id="user-input" placeholder="Ask Ecco...">
+                <button type="submit">Send</button>
+            </form>
+        </div>
+    </div>
+    <script src="app.js"></script>
+</body>
+</html>

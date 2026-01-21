@@ -1,8 +1,8 @@
-# Ecco the flipper
+# Ecco
 
-An AI agent that lives on your Flipper Zero.
+An AI agent that controls your Flipper Zero.
 
-Ecco turns your Flipper into a standalone hacking assistant — no laptop or phone required. Ask it to capture a signal, read an NFC tag, or identify a protocol, and it actually does it. The AI can see what the Flipper sees, control what it controls, and explain what it finds.
+Ecco turns your Flipper into a wireless hacking assistant. Connect from any browser, chat with Claude, and let the AI control SubGHz, NFC, IR, and RFID hardware directly. The AI sees what the Flipper sees and does what you ask.
 
 ![Status](https://img.shields.io/badge/status-early%20development-orange)
 ![Flipper](https://img.shields.io/badge/flipper-0.99+-green)
@@ -11,211 +11,182 @@ Ecco turns your Flipper into a standalone hacking assistant — no laptop or pho
 ## How It Works
 
 ```
-┌─────────────────────┐        ┌─────────────────────┐
-│    FLIPPER ZERO     │  UART  │   WIFI DEV BOARD    │
-│                     │◄──────►│     (ESP32-S2)      │
-│  • Chat UI          │  GPIO  │                     │
-│  • Hardware tools   │        │  • WiFi             │
-│  • Tool execution   │        │  • Claude API       │
-└─────────────────────┘        └─────────────────────┘
-                                        │
-                                        ▼
-                               ┌─────────────────────┐
-                               │     Claude API      │
-                               └─────────────────────┘
+┌─────────────────────┐         ┌─────────────────────┐         ┌─────────────────────┐
+│      Browser        │  WiFi   │       ESP32         │  UART   │    Flipper Zero     │
+│                     │◄───────►│                     │◄───────►│                     │
+│  • Chat UI          │         │  • Serves webapp    │         │  • SubGHz           │
+│  • Claude API       │         │  • Tool API         │         │  • NFC              │
+│  • Agent logic      │         │  • UART bridge      │         │  • IR               │
+└─────────────────────┘         └─────────────────────┘         │  • RFID             │
+         │                                                      └─────────────────────┘
+         ▼
+┌─────────────────────┐
+│     Claude API      │
+└─────────────────────┘
 ```
 
-The Flipper app handles the UI and hardware. The WiFi board handles the internet. They talk over UART. Everything fits in your pocket.
+1. ESP32 creates a WiFi access point (or joins your network)
+2. You open the ESP32's IP in any browser
+3. Chat with Claude — it calls tools that execute on the Flipper
+4. Results come back through the same path
 
 ## Requirements
 
 - Flipper Zero (firmware 0.99+)
-- [WiFi Dev Board](https://shop.flipperzero.one/products/wifi-devboard) (official ESP32-S2 board)
+- [WiFi Dev Board](https://shop.flipperzero.one/products/wifi-devboard) (ESP32-S2)
 - Anthropic API key
-- WiFi network
+- Any device with a browser (phone, laptop, tablet)
 
-## Installation
+## Quick Start
 
-### Flash the WiFi Board
+### 1. Flash the ESP32
 
-1. Download the latest Ecco ESP32 firmware from [Releases](https://github.com/yourname/ecco/releases)
-2. Put your WiFi board into bootloader mode (hold BOOT while plugging in USB)
-3. Flash using esptool:
 ```bash
-esptool.py --chip esp32s2 write_flash 0x0 ecco-esp32-vX.X.X.bin
+# Download firmware from Releases, then:
+esptool.py --chip esp32s2 write_flash 0x0 ecco-esp32.bin
 ```
 
-### Install the Flipper App
+### 2. Install the Flipper App
 
-1. Download `ecco.fap` from [Releases](https://github.com/yourname/ecco/releases)
-2. Copy to `SD Card/apps/GPIO/ecco.fap`
-3. Or build from source:
-```bash
-cd flipper
-./fbt fap_ecco
-```
+Copy `ecco.fap` from [Releases](https://github.com/AnthonE/ecco-the-flipper/releases) to your SD card at `apps/GPIO/ecco.fap`.
 
-### Configure
-
-1. Open Ecco on your Flipper
-2. Go to Settings
-3. Enter your WiFi credentials
-4. Enter your Anthropic API key
-
-## Usage
+### 3. Connect
 
 1. Plug in the WiFi dev board
-2. Launch Ecco from Apps → GPIO
-3. Type a message and press OK
+2. Launch Ecco on Flipper (Apps → GPIO → Ecco)
+3. Connect to the `Ecco` WiFi network (or your configured network)
+4. Open `http://192.168.4.1` in your browser
+5. Enter your Anthropic API key
+6. Start chatting
 
-**Example prompts:**
+## Example Prompts
+
 - "What NFC card is this?"
-- "Capture whatever signal I'm about to send"
+- "Capture the next signal I send"
+- "Clone this garage remote"
 - "Turn off the TV"
-- "Read this RFID tag and save it"
 - "What protocol is this remote using?"
+- "Save this RFID tag as 'work badge'"
 
 ## Project Structure
 
 ```
 ecco/
-├── flipper/              # Flipper Zero app (C)
-│   ├── ecco.c            # Entry point
-│   ├── ui/               # Chat view, text input, settings
-│   ├── agent/            # Tool dispatch, message handling
-│   ├── hardware/         # SubGHz, NFC, IR, RFID wrappers
-│   └── comms/            # UART protocol
+├── webapp/               # Browser UI (HTML/JS)
+│   ├── index.html
+│   ├── app.js           # Claude API + tool handling
+│   └── style.css
 │
-├── esp32/                # ESP32-S2 firmware (Rust)
+├── esp32/                # ESP32 firmware (Rust)
 │   ├── src/
-│   │   ├── main.rs       # Entry point
-│   │   ├── wifi.rs       # WiFi connection
-│   │   ├── api.rs        # Claude API client
-│   │   ├── uart.rs       # UART protocol
-│   │   └── protocol.rs   # Message types
+│   │   ├── main.rs      # Entry point
+│   │   ├── wifi.rs      # WiFi AP/client
+│   │   ├── http.rs      # Web server + API
+│   │   └── uart.rs      # Flipper communication
 │   └── Cargo.toml
 │
-├── protocol/             # Shared protocol definitions
-│   └── schema.md
+├── flipper/              # Flipper app (C)
+│   ├── ecco.c           # Entry point
+│   ├── tools/           # Hardware tool implementations
+│   └── uart/            # Protocol handling
 │
-└── docs/
-    ├── ARCHITECTURE.md
-    ├── TOOLS.md
-    └── CONTRIBUTING.md
+└── protocol/             # Shared protocol spec
+    └── schema.md
 ```
 
 ## Available Tools
 
 | Tool | Description | Status |
 |------|-------------|--------|
-| `device_info` | Get Flipper device info | 🟢 Done |
-| `subghz_capture` | Capture Sub-GHz signal | 🟡 In Progress |
-| `subghz_transmit` | Transmit saved signal | 🟡 In Progress |
+| `device_info` | Get Flipper info | 🔴 Planned |
+| `subghz_capture` | Capture Sub-GHz signal | 🔴 Planned |
+| `subghz_transmit` | Transmit saved signal | 🔴 Planned |
 | `nfc_read` | Read NFC tag | 🔴 Planned |
 | `nfc_emulate` | Emulate NFC tag | 🔴 Planned |
 | `ir_receive` | Capture IR signal | 🔴 Planned |
 | `ir_transmit` | Transmit IR signal | 🔴 Planned |
 | `rfid_read` | Read 125kHz RFID | 🔴 Planned |
-| `storage_list` | List files | 🔴 Planned |
-| `storage_read` | Read file | 🔴 Planned |
+| `storage_list` | List files on SD | 🔴 Planned |
+| `storage_read` | Read file from SD | 🔴 Planned |
 
 ## Roadmap
 
-- [x] Project structure
-- [ ] ESP32 WiFi + Claude API connection
-- [ ] Flipper FAP skeleton with chat UI
-- [ ] UART protocol between boards
-- [ ] First tool working end-to-end
-- [ ] Core tools (SubGHz, NFC, IR)
-- [ ] Settings persistence
-- [ ] Error handling and recovery
+- [x] Project planning
+- [ ] Protocol spec (ESP32 ↔ Flipper)
+- [ ] ESP32 firmware (WiFi + HTTP server + UART)
+- [ ] Flipper FAP (tool executor)
+- [ ] Webapp (chat UI + Claude integration)
+- [ ] First tool end-to-end (device_info)
+- [ ] Core hardware tools
 - [ ] v0.1 release
 
 ## Building from Source
 
 ### ESP32 Firmware
 
-Requires Rust and esp-rs toolchain:
-
 ```bash
-# Install Rust
+# Install Rust + esp-rs
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-
-# Install esp-rs
 cargo install espup
 espup install
 
-# Build
+# Build and flash
 cd esp32
 cargo build --release
-
-# Flash
 cargo espflash flash --release
 ```
 
 ### Flipper App
 
-Requires the Flipper firmware repo:
-
 ```bash
-# Clone firmware
+# Clone firmware repo
 git clone --recursive https://github.com/flipperdevices/flipperzero-firmware.git
 cd flipperzero-firmware
 
-# Clone Ecco into applications_user
-git clone https://github.com/yourname/ecco.git applications_user/ecco
+# Link Ecco
+ln -s /path/to/ecco/flipper applications_user/ecco
 
-# Build
+# Build and run
 ./fbt fap_ecco
-
-# Flash
 ./fbt launch_app APPSRC=ecco
 ```
 
-## Contributing
+### Webapp
 
-This project is in early development. Contributions welcome!
+The webapp is served directly from the ESP32. During development:
 
-1. Fork the repo
-2. Create a branch (`git checkout -b feature/cool-thing`)
-3. Commit your changes
-4. Push and open a PR
-
-See [CONTRIBUTING.md](docs/CONTRIBUTING.md) for more details.
+```bash
+cd webapp
+python -m http.server 8000
+# Open http://localhost:8000
+```
 
 ## FAQ
 
-**Why Claude and not local LLM?**
+**Why Claude instead of a local LLM?**
 
-The ESP32-S2 has 2MB of RAM. Local models need gigabytes. Maybe someday with better edge AI, but for now, cloud it is.
+Tool use. Claude is exceptionally good at understanding when and how to use tools. Local models are getting better but aren't there yet for reliable agent behavior.
 
-**How much does it cost to run?**
+**How much does it cost?**
 
-Claude API pricing is ~$3/million input tokens, ~$15/million output tokens. A typical conversation with tool use might cost $0.01-0.05. Not free, but cheap.
+Claude API costs ~$3/million input tokens, ~$15/million output tokens. A typical session might cost $0.01-0.05.
 
-**Can I use OpenAI/Ollama/etc instead?**
+**Is my API key safe?**
 
-Not yet. Claude's tool use is what makes the agent work well. PRs welcome for other backends.
+Your API key stays in your browser and is sent directly to Anthropic. It never touches the ESP32 or Flipper.
 
 **Will this brick my Flipper?**
 
-No. It's just an app. Delete the `.fap` file and it's gone.
+No. It's just an app. Delete the `.fap` file to uninstall.
 
 **Is this legal?**
 
-Ecco is a tool. Don't do illegal things with it.
+Ecco is a tool. Use it responsibly and legally.
 
 ## License
 
-CC0 License. See [LICENSE](LICENSE).
-
-## Acknowledgments
-
-- [Flipper Devices](https://flipperzero.one) for the hardware and SDK
-- [Anthropic](https://anthropic.com) for Claude
-- [esp-rs](https://github.com/esp-rs) for making Rust on ESP32 actually good
-- The Flipper community for documentation and examples
+CC0 — Public Domain. See [LICENSE](LICENSE).
 
 ---
 
-**Ecco** — *Talk to your Flipper.*
+**Ecco** — *Your Flipper, smarter.*

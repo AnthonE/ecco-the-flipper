@@ -1,0 +1,13 @@
+App(
+    appid="ecco",
+    name="Ecco",
+    apptype=FlipperAppType.EXTERNAL,
+    entry_point="ecco_app",
+    requires=["gui", "storage", "subghz", "nfc", "infrared", "lfrfid"],
+    stack_size=4 * 1024,
+    fap_icon="ecco.png",
+    fap_category="GPIO",
+    fap_author="AnthonE",
+    fap_version="0.1.0",
+    fap_description="AI agent for Flipper Zero",
+)
