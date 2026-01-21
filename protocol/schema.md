@@ -1,6 +1,10 @@
 # Ecco Protocol Specification
 
-Binary protocol for ESP32 ↔ Flipper communication over UART.
+Binary protocol used across all layers:
+- **Browser ↔ ESP32:** WebSocket (binary frames)
+- **ESP32 ↔ Flipper:** UART
+
+Same frame format everywhere. ESP32 is a transparent bridge.
 
 ## Physical Layer
 
