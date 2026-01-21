@@ -3,7 +3,7 @@ App(
     name="Ecco",
     apptype=FlipperAppType.EXTERNAL,
     entry_point="ecco_app",
-    requires=["gui", "storage", "subghz", "nfc", "infrared"],
+    requires=["gui", "storage", "subghz", "nfc", "infrared", "lfrfid"],
     stack_size=4 * 1024,
     fap_icon="ecco.png",
     fap_category="GPIO",
