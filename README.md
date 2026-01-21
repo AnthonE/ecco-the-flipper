@@ -6,7 +6,7 @@ Ecco turns your Flipper into a standalone hacking assistant — no laptop or pho
 
 ![Status](https://img.shields.io/badge/status-early%20development-orange)
 ![Flipper](https://img.shields.io/badge/flipper-0.99+-green)
-![License](https://img.shields.io/badge/license-MIT-blue)
+![License](https://img.shields.io/badge/license-CC0-blue)
 
 ## How It Works
 
@@ -207,7 +207,7 @@ Ecco is a tool. Don't do illegal things with it.
 
 ## License
 
-MIT License. See [LICENSE](LICENSE).
+CC0 License. See [LICENSE](LICENSE).
 
 ## Acknowledgments
 
